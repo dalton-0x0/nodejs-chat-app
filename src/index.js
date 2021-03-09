@@ -9,19 +9,27 @@ const io = socketio(server)
 // express() auto creates a http server but socket.io doesn't
 // setup required on the client side as well before io.on() connection
 
-// define port number
+// define port
 const port = process.env.PORT || 3000;
 
-// define paths for express config
+// define path to public for html render
 const publicDirectoryPath = path.join(__dirname, "../public");
 
 // setup static directory to serve up
 app.use(express.static(publicDirectoryPath));
 
-io.on("connection", () => {
-    console.log("chat-app socket.io connection");
+let count = 0;
+
+io.on("connection", (socket) => {
+    console.log("socket.io server connection");
+    socket.emit("countUpdated", count);
+    socket.on("increment", () => {
+        count++;
+        // socket.emit("countUpdated", count); // emits to only the 'socket' connection
+        io.emit("countUpdated", count); // emits to every connection
+    });
 });
 
 server.listen(port, () => {
-    console.log("chat-app server is up on port " + port);
+    console.log("nodejs server connected on port " + port);
 });

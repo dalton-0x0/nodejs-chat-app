@@ -35,33 +35,43 @@ io.on("connection", (socket) => {
 
         socket.join(user.room);
 
-        socket.emit("message", generateMessage(`welcome ${user.username}!`));
+        socket.emit("message", generateMessage('chat-admin', `welcome ${user.username}!`));
 
         socket.broadcast
             .to(user.room)
-            .emit("message", generateMessage(`${user.username} joined`));
+            .emit("message", generateMessage('chat-admin', `${user.username} joined`));
 
         callback();
     });
 
     socket.on("sendMessage", (message, callback) => {
+        const user = getUser(socket.id);
+
         const filter = new Filter();
 
         if (filter.isProfane(message)) {
             return callback("profanity is not allowed");
         }
 
-        io.to("cars").emit("message", generateMessage(message));
+        io.to(user.room).emit(
+            "message",
+            generateMessage(user.username, message)
+        );
+
         callback();
     });
 
     socket.on("sendLocation", (coords, callback) => {
-        io.emit(
+        const user = getUser(socket.id);;
+
+        io.to(user.room).emit(
             "locationMessage",
             generateLocationMessage(
+                user.username,
                 `https://google.com/maps?q=${coords.latitude},${coords.longitude}`
             )
         );
+
         callback();
     });
 
@@ -71,7 +81,7 @@ io.on("connection", (socket) => {
         if (user) {
             io.to(user.room).emit(
                 "message",
-                generateMessage(`${user.username} left`)
+                generateMessage('chat-admin', `${user.username} left`)
             );
         }
 

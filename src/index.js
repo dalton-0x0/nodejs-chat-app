@@ -41,6 +41,11 @@ io.on("connection", (socket) => {
             .to(user.room)
             .emit("message", generateMessage('chat-admin', `${user.username} joined`));
 
+        io.to(user.room).emit("roomData", {
+            room: user.room,
+            users: getUsersInRoom(user.room),
+        });
+
         callback();
     });
 
@@ -81,10 +86,13 @@ io.on("connection", (socket) => {
         if (user) {
             io.to(user.room).emit(
                 "message",
-                generateMessage('chat-admin', `${user.username} left`)
+                generateMessage("chat-admin", `${user.username} left`)
             );
+            io.to(user.room).emit("roomData", {
+                room: user.room,
+                users: getUsersInRoom(user.room),
+            });
         }
-
     });
 });
 
